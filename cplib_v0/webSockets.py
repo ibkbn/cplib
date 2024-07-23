@@ -16,8 +16,6 @@ ssl_context = ssl._create_unverified_context()
 local_ip = "127.0.0.1:5000"
 base_url = f"https://{local_ip}/v1/api"
 
-
-
 #Historical data payload:
 def create_SMH_req(conID, period, barSize, dataType, dateFormat):
     msg = f"smh+{conID}+" + json.dumps({
@@ -168,7 +166,7 @@ async def sendMessages(msgList):
             rst = await websocket.recv()
             jsonData = json.loads(rst.decode())
             
-
+            print(jsonData)
             if 'topic' in jsonData.keys():
                 
                 if jsonData['topic'] == 'str':
@@ -247,9 +245,14 @@ def tesLiveOrderUpdates():
     messages = [msg]
     asyncio.get_event_loop().run_until_complete(sendMessages(messages))
 
+def testSMHrequest():
+    smh_req = create_SMH_req(265598, "1d", "1hour", "trades", "%o/%c/%h/%l") 
+    messages = [smh_req]
+    asyncio.get_event_loop().run_until_complete(sendMessages(messages))
+
+
 def main():
-    testHdrRequest()
-    liveMarketData()
+    testSMHrequest()
 
 if __name__ == "__main__":
     urllib3.disable_warnings()
