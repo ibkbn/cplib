@@ -1,6 +1,7 @@
 #! /usr/bin/env python3
 
 import requests
+import logging
 import json
 import time
 import csv
@@ -14,8 +15,21 @@ from cplib_v0.contract import Instrument, Contract
 from cplib_v0.errorParser import errorHandler
 from json.decoder import JSONDecodeError
 from cplib_v0.utils import createScanner
+from cplib_v0.endpoints import base_url
+
 
 requests.packages.urllib3.disable_warnings()
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.DEBUG,
+                    format='%(asctime)s - %(levelname)s - %(message)s',
+                    datefmt='%Y-%m-%d %H:%M:%S',
+                    handlers=[
+                        logging.FileHandler('app.log'),
+                        logging.StreamHandler()
+                        ]
+                    )
+logger.info('Started')
 
 class ContractDetailsManager():
 
@@ -175,27 +189,29 @@ class Session():
 
     def __init__(self):
         self.attempts = 0
+        self.isConnected = False
 
-    def checkAuthStatus(self):
-        if self.attempts != 0:
-            print(f"Reauth attempt number: {self.attempts}")
+    def connect(self):
+        if self.attempts >= 0:
+            self.attempts += 1
+        if self.attempts > 5:
+            self.reauthenticateSession()
         try:
             endpoint = endpoints['auth_status']
             response = requests.get(endpoint, verify=False)
             if response.status_code == 401:
                 raise NotLoggedIn 
             jsonData = json.loads(response.text)
-            print(jsonData)
             self.parseAuthResponse(jsonData)
-            print(jsonData)
             return jsonData 
 
         except requests.exceptions.ConnectionError:
-            print(f"Could't connect to server. Make sure that gateway is running")
+            logger.debug(f"Connection error. Failed to communicate with gateway at {base_url}")
             sys.exit()
 
         except NotLoggedIn:
-            print("Please log in")
+            logger.error('Authentication error.') 
+            sys.exit()
 
         except NotAuthenticated:
             self.reauthenticateSession()
@@ -207,40 +223,44 @@ class Session():
         except Exception as err:
             print(f"Authentication class exception -> ", err)
 
-
-
     def parseAuthResponse(self, jsonData):
+        
+        print("Received json:", jsonData)
+        
+        # This needs to be reworked as connect() is being triggered
+        # during session reauthentication.
 
-        if jsonData['authenticated'] == False and jsonData['competing'] == False and jsonData['connected'] == True:
-            raise NotAuthenticated
+        if jsonData["connected"] != True:
+            while self.attempts <= 5 and self.isConnected == False:
+                time.sleep(1)
+                logger.debug(f"connect() call: Recconection attempt {self.attempts}")
+                self.connect()
+            logger.debug("Not connected")
+            sys.exit()
 
-        if jsonData['authenticated'] == jsonData['competing'] == jsonData['connected'] == False:
-            # this happens if TWS runs in live or paper mode with same credentials
-            raise CompetingSessionException 
+        if jsonData['authenticated'] != True and jsonData['connected'] == True:
+            logger.debug("Not authenticated. Reauthentication attempt.")
+            self.reauthenticateSession()
+            sys.exit()
 
-        if jsonData['competing'] == True:
-            raise CompetingSessionException
-
-        if jsonData['authenticated'] != True and jsonData['connected'] != True:
-            raise NotAuthenticated
-
-        else:
-            print("Auth response: ", jsonData)
+        if jsonData['competing'] != False:
+            logger.debug('Competing session')
+            # Halt the execution until logged out
+            sys.exit()
+        
+        logger.debug(f'Connected: {jsonData["connected"]}')
+        logger.debug(f'Competing: {jsonData["competing"]}') 
+        logger.debug(f'Authenticated: {jsonData["authenticated"]}') 
+        self.isConnected = True
 
     def reauthenticateSession(self):
         print('Trying to reauthenticate the session... ')
         # Deprecated, use /ssodh/init to reauthenticate session
 #        response = requests.get(endpoints['reauth'], verify=False)
-        response = requests.get(endpoints['ssodh_init'], verify=False)
-        print(response.text)
-        self.attempts += 1
-        if self.attempts < 5:
-            time.sleep(2)
-            self.checkAuthStatus()
-        else:
-            print("Have sent 5 reauth requests, exiting ...")
-            # Here should be a relogin call
-            sys.exit()
+        payload = {'publish': True, 'compete': True}
+        response = requests.post(endpoints['ssodh_init'], json=payload, verify=False)
+        jsonData = json.loads(response.text)
+        self.parseAuthResponse(jsonData)
 
 
     def __repr__(self):
@@ -275,10 +295,10 @@ class Broker(Session, Account, OrderMonitor):
         OrderMonitor()._OrderMonitor__sampleFunction()
 
     def isAuthenticated(self):
+        print('Triggered')
         data = self.checkAuthStatus()
-        print("auth check: ", data)
-        if data['authenticated'] == True:
-            return True
+        print(data)
+        return True 
 
     def showLiveOrders(self, filters=''):
         orders = self.monitor.retrieveLiveOrders(filters)
