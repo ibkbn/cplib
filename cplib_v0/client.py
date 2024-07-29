@@ -31,6 +31,8 @@ logging.basicConfig(level=logging.DEBUG,
                     )
 logger.info('Started')
 
+#TEST
+
 class ContractDetailsManager():
 
     def __init__(self):
