@@ -40,54 +40,50 @@ def unsubscibeHistoricalData(serverID):
 
 async def sendMessages(historicalQuery):
 
-    messages = [historicalQuery] 
+    queue = [] 
 
     async with websockets.connect("wss://" + local_ip + "/v1/api/ws", ssl=ssl_context) as websocket:
         # Session can be initialized here by using the websocket object 
 
         rst = await websocket.recv()
         jsonData = json.loads(rst.decode())
+
+        # Initial request
+        if queue == []:
+            logging.info("Adding historical data request to queue")
+            queue.append(historicalQuery)
         
         while True:
-            # *Imitates queue* 
-            logging.info(f"Messages queue: {messages}")
-            if len(messages) != 0:
-                currentMsg = messages.pop(0)
-            await asyncio.sleep(1)
-            await websocket.send(currentMsg)
+            logging.info(f"Messages queue: {queue}")
+
+            # Sending in all messages from queue
+            while len(queue) != 0:
+                currentMsg = queue.pop(0)
+                await asyncio.sleep(1)
+                await websocket.send(currentMsg)
 
             rst = await websocket.recv()
             jsonData = json.loads(rst.decode())
             if 'topic' in jsonData.keys():
                 
                 if 'error' in jsonData.keys() and jsonData['topic'] == 'smh':
-                    # Relogin
                     logging.info(jsonData['error'])
                     sys.exit()
                 
                 if jsonData['topic'].startswith("smh+"):
-                    logging.info('Received historical data')
+                    # Server id is taken from the response
                     serverID = jsonData['serverId']
+                    logging.info(f'{serverID} - Received historical data')
                     unsubHistMsg = unsubscibeHistoricalData(serverID)
-                    messages.append(unsubHistMsg)
-                
-                logging.info(jsonData.keys())
-                if 'error' in jsonData.keys() and jsonData['topic'] == 'umh':
-                    logging.error(jsonData['error'])
-                    logging.info(messages)
-                    logging.info(jsonData)
-                    messages.append(historicalQuery)
-
-                if 'message' in jsonData.keys():
-
-                    logging.info(f"message: {jsonData['message']}")
-                    sys.exit()
-
-                    if jsonData['message'].startswith('Unsubscribed'):
-                        # Safe to add more historical queries to the queue
-                        serverId = jsonData['message'].split(' ')[1]
-                        logging.info(f'Unsubscribed from historical chart. ServerID: {serverId}')
-
+                    # Since we are using pop() unsibscribe message should go first
+                    # Python's list's pop() method withdraws element at index 0
+                    # removing it from the list. 
+                    queue.append(unsubHistMsg)
+                    logging.info(f"{serverID} - Cancel historical data request added to queue")
+                    logging.info(f'New historical data request added to queue')
+                    queue.append(historicalQuery)
+                    logging.info("Sleeping 10")
+                    await asyncio.sleep(10)
 
 def testHdrRequest():
     hdr = hdrMsg('265598', period = '5min', barSize='5min', source='trades',
