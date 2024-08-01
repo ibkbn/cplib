@@ -85,12 +85,6 @@ async def sendMessages(historicalQuery):
                     logging.info("Sleeping 10")
                     await asyncio.sleep(10)
 
-def testHdrRequest():
-    hdr = hdrMsg('265598', period = '5min', barSize='5min', source='trades',
-            dateFormat='%o/%c/%h/%l')
-    messages = [hdr]
-    asyncio.get_event_loop().run_until_complete(sendMessages(messages))
-
 def testSMHrequest():
     smh_req = create_SMH_req(265598, "1d", "1hour", "trades", "%o/%c/%h/%l") 
     messages = [smh_req]
