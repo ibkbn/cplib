@@ -42,48 +42,57 @@ async def sendMessages(historicalQuery):
 
     queue = [] 
 
-    async with websockets.connect("wss://" + local_ip + "/v1/api/ws", ssl=ssl_context) as websocket:
-        # Session can be initialized here by using the websocket object 
+    try:
 
-        rst = await websocket.recv()
-        jsonData = json.loads(rst.decode())
-
-        # Initial request
-        if queue == []:
-            logging.info("Adding historical data request to queue")
-            queue.append(historicalQuery)
-        
-        while True:
-            logging.info(f"Messages queue: {queue}")
-
-            # Sending in all messages from queue
-            while len(queue) != 0:
-                currentMsg = queue.pop(0)
-                await asyncio.sleep(1)
-                await websocket.send(currentMsg)
+        async with websockets.connect("wss://" + local_ip + "/v1/api/ws", ssl=ssl_context) as websocket:
+            # Session can be initialized here by using the websocket object 
 
             rst = await websocket.recv()
             jsonData = json.loads(rst.decode())
-            if 'topic' in jsonData.keys():
-                
-                if 'error' in jsonData.keys() and jsonData['topic'] == 'smh':
-                    logging.info(jsonData['error'])
-                    sys.exit()
-                
-                if jsonData['topic'].startswith("smh+"):
-                    # Server id is taken from the response
-                    serverID = jsonData['serverId']
-                    logging.info(f'{serverID} - Received historical data')
-                    unsubHistMsg = unsubscibeHistoricalData(serverID)
-                    # Since we are using pop() unsibscribe message should go first
-                    # Python's list's pop() method withdraws element at index 0
-                    # removing it from the list. 
-                    queue.append(unsubHistMsg)
-                    logging.info(f"{serverID} - Cancel historical data request added to queue")
-                    logging.info(f'New historical data request added to queue')
-                    queue.append(historicalQuery)
-                    logging.info("Sleeping 10")
-                    await asyncio.sleep(10)
+
+            # Initial request
+            if queue == []:
+                logging.info("Adding historical data request to queue")
+                queue.append(historicalQuery)
+            
+            while True:
+                logging.info(f"Messages queue: {queue}")
+
+                # Sending in all messages from queue
+                while len(queue) != 0:
+                    currentMsg = queue.pop(0)
+                    await asyncio.sleep(1)
+                    await websocket.send(currentMsg)
+
+                rst = await websocket.recv()
+                jsonData = json.loads(rst.decode())
+                if 'topic' in jsonData.keys():
+                    
+                    if 'error' in jsonData.keys() and jsonData['topic'] == 'smh':
+                        logging.info(jsonData['error'])
+                        sys.exit()
+                    
+                    if jsonData['topic'].startswith("smh+"):
+                        # Server id is taken from the response
+                        serverID = jsonData['serverId']
+                        logging.info(f'{serverID} - Received historical data')
+                        unsubHistMsg = unsubscibeHistoricalData(serverID)
+                        # Since we are using pop() unsibscribe message should go first
+                        # Python's list's pop() method withdraws element at index 0
+                        # removing it from the list. 
+                        queue.append(unsubHistMsg)
+                        logging.info(f"{serverID} - Cancel historical data request added to queue")
+                        logging.info(f'New historical data request added to queue')
+                        queue.append(historicalQuery)
+                        logging.info("Sleeping 10")
+                        await asyncio.sleep(10)
+
+    except Exception as e:
+        logging.error(f"Error in websocket communication: {e}")
+    
+    finally:
+        if websocket.open():
+            websocket.close()
 
 def testSMHrequest():
     smh_req = create_SMH_req(265598, "1d", "1hour", "trades", "%o/%c/%h/%l") 
