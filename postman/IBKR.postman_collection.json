@@ -1,9 +1,9 @@
 {
 	"info": {
-		"_postman_id": "da5798f2-0227-4474-9bcf-f24912cdd197",
+		"_postman_id": "da67580e-ea9d-4017-89eb-521122c04832",
 		"name": "IBKR",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "259441"
+		"_exporter_id": "21628711"
 	},
 	"item": [
 		{
@@ -1979,15 +1979,6 @@
 							"originalRequest": {
 								"method": "GET",
 								"header": [],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n  \"conids\": [\n    11004968\n  ]\n}",
-									"options": {
-										"raw": {
-											"language": "json"
-										}
-									}
-								},
 								"url": {
 									"raw": "https://localhost:5001/v1/api/trsrv/all-conids?exchange=",
 									"protocol": "https",
@@ -2171,15 +2162,6 @@
 							"originalRequest": {
 								"method": "GET",
 								"header": [],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n  \"conids\": [\n    11004968\n  ]\n}",
-									"options": {
-										"raw": {
-											"language": "json"
-										}
-									}
-								},
 								"url": {
 									"raw": "https://localhost:5001/v1/api/iserver/currency/pairs?currency=USD",
 									"protocol": "https",
@@ -3072,7 +3054,117 @@
 						},
 						"description": "When connected to an IServer Brokerage Session, this endpoint will allow you to submit orders.\n\n**Cash Quantity:** Send orders using monetary value by specifying cashQty instead of quantity, e.g. cashQty: 200. The endpoint /iserver/contract/rules returns list of valid orderTypes in cqtTypes. Please note this will round the order down to the nearest whole share, which may be 0 depending on the value provided compared to the current share price.\n\n**Currency Conversion:** Convert cash from one currency to another by including isCcyConv = true. To specify the cash quantity use fxQTY instead of quantity, e.g. fxQTY: 100.\n\n**Note:**\n\n- With the exception of OCA groups and bracket orders, the orders endpoint does not currently support the placement of unrelated orders in bulk.\n    \n\n###### Body Params\n\n**orders:** Array of Objects. Required  \nUsed to the order content.  \n\\[{  \n**acctId:** String.  \nIt should be one of the accounts returned by /iserver/accounts.  \nIf not passed, the first one in the list is selected.\n\n**conid:** int. Required\\*  \nconid is the identifier of the security you want to trade  \nYou can find the conid with /iserver/secdef/search.  \n\\*Can use conidex instead of conid.\n\n**conidex:** String. Optional\\*  \nA mix of the contract identifier and exchange  \n\\*Can be used instead of conid when specifying the contract identifier of a security.  \nValue format: “conid@exchange”\n\n**secType:** String.  \nThe contract-identifier (conid) and security type (type) specified as a concatenated value  \nValue Format: “conid:type”\n\n**cOID:** String.  \nCustomer Order ID.  \nAn arbitrary string that can be used to identify the order  \nThe value must be unique for a 24h span.  \nDo not set this value for child orders when placing a bracket order.\n\n**parentId:** String.  \nOnly specify for child orders when placing bracket orders.  \nThe parentId for the child order(s) must be equal to the cOId (customer order id) of the parent.\n\n**orderType:** String. Required  \nThe order-type determines what type of order you want to send.  \nAvailable Order Types: LMT, MKT, STP, STOP_LIMIT, MIDPRICE, TRAIL, TRAILLMT\n\n**listingExchange:** String.  \nPrimary routing exchange for the order.  \nBy default we use “SMART” routing.  \nPossible values are available via the endpoint: /iserver/contract/{conid}/info\n\n**isSingleGroup:** bool.  \nSet to true if you want to place a single group orders(OCA)\n\n**outsideRTH:** bool.  \nSet to true if the order can be executed outside regular trading hours.\n\n**price:** float. Required for LMT or STOP_LIMIT  \nThis is typically the limit price.  \nFor STP|TRAIL this is the stop price.  \nFor MIDPRICE this is the option price cap.\n\n**auxPrice:** float. Required for STOP_LIMIT and TRAILLMT orders.  \nStop price for STOP_LIMIT and TRAILLMT orders.  \nYou must specify both price and auxPrice for STOP_LIMIT|TRAILLMT orders.\n\n**side:** String. Required  \nValid Values: SELL or BUY\n\n**ticker:** String.  \nThis is the underlying symbol for the contract.\n\n**tif:** String. Required  \nThe Time-In-Force determines how long the order remains active on the market.  \nValid Values: GTC, OPG, DAY, IOC, PAX (CRYPTO ONLY).\n\n**trailingAmt:** float. Required for TRAIL and TRAILLMT order  \noptional if order is TRAIL, or TRAILLMT.  \nWhen trailingType is amt, this is the trailing amount  \nWhen trailingType is %, it means percentage.\n\n**trailingType:** String. Required for TRAIL and TRAILLMT order  \nThis is the trailing type for trailing amount.  \nYou must specify both trailingType and trailingAmt for TRAIL and TRAILLMT order  \nValid Values: “amt” or “%”\n\n**referrer:** String.  \nCustom order reference\n\n**quantity:** float. Required\\*  \nUsed to designate the total number of shares traded for the order.\n\n**cashQty:** float.  \nUsed to specify the monetary value of an order instead of the number of shares.  \nWhen using ‘cashQty’ don’t specify ‘quantity’  \nCash quantity orders are provided on a non-guaranteed basis.  \nIn addition to the monetary value, the order uses a maximum size that is calculated using the Cash Quantity Estimated Factor, which can be modified in TWS Order Presets.  \nPlease note this will round the order down to the nearest whole share, which may be 0 depending on the value provided compared to the current share price.\n\n**fxQty:** float.  \nThis is the cash quantity field which can only be used for Currency Conversion Orders.  \nWhen using ‘fxQty’ don’t specify ‘quantity’.\n\n**useAdaptive:** boolean  \nIf true, the system will use the Price Management Algo to submit the order.  \nRead more on our Price Management Algo page. https://www.interactivebrokers.com/en/index.php?f=43423\n\n**isCcyConv:** boolean  \nset to true if the order is a FX conversion order\n\n**allocationMethod:** String.  \nSet the allocation method when placing an order using an FA account for a group.  \nBased on value set in Trader Workstation.\n\n**manualOrderTime:** int.  \nOnly used for Brokers and Advisors. Mark the time to manually record initial order entry.  \nMust be sent as epoch time integer.\n\n**deactivated:** bool.  \nFunctions the same as [Saving an Order in Trader Workstation](https://ibkrcampus.com/trading-lessons/getting-started-with-the-order-entry-panel/).\n\n**strategy:** String.  \nSpecify which IB Algo algorithm to use for this order.\n\n**strategyParameters:** Array.  \nThe IB Algo parameters for the specified algorithm.  \n}\\]"
 					},
-					"response": []
+					"response": [
+						{
+							"name": "Place Order",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"orders\": [\n    {\n      \"acctId\": \"U1234567\",\n      \"conid\": 265598,\n      \"conidex\": \"265598@SMART\",\n      \"secType\": \"265598@STK\",\n      \"cOID\": \"AAPL-BUY-100\",\n      \"parentId\": \"\",\n      \"orderType\": \"TRAILLMT\",\n      \"listingExchange\": \"NASDAQ\",\n      \"isSingleGroup\":false,\n      \"outsideRTH\":true,\n      \"price\": 185.50,\n      \"auxPrice\": 183,\n      \"side\": \"BUY\",\n      \"ticker\": \"AAPL\",\n      \"tif\": \"GTC\",\n      \"trailingAmt\": 1.00,\n      \"trailingType\": \"amt\",\n      \"referrer\": \"QuickTrade\",\n      \"quantity\": 100,\n      \"cashQty\": {{ cashQty }},\n      \"fxQty\": {{ fxQty }},\n      \"useAdaptive\":false,\n      \"isCcyConv\":false,\n      \"allocationMethod\": {{ allocationMethod }},\n      \"strategy\": \"Vwap\",\n        \"strategyParameters\": {\n          \"MaxPctVol\":\"0.1\",\n          \"StartTime\":\"14:00:00 EST\",\n          \"EndTime\":\"15:00:00 EST\",\n          \"AllowPastEndTime\":true\n        }\n    }\n  ]\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base-url}}/iserver/account/:accountId/orders",
+									"host": [
+										"{{base-url}}"
+									],
+									"path": [
+										"iserver",
+										"account",
+										":accountId",
+										"orders"
+									],
+									"variable": [
+										{
+											"key": "accountId",
+											"value": ""
+										}
+									]
+								}
+							},
+							"status": "Bad Request",
+							"code": 400,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Referrer-Policy",
+									"value": "Origin-when-cross-origin"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "X-Content-Type-Options",
+									"value": "nosniff"
+								},
+								{
+									"key": "X-Cnection",
+									"value": "close"
+								},
+								{
+									"key": "Expires",
+									"value": "Thu, 01 Aug 2024 06:40:48 GMT"
+								},
+								{
+									"key": "Cache-Control",
+									"value": "max-age=0, no-cache, no-store"
+								},
+								{
+									"key": "Pragma",
+									"value": "no-cache"
+								},
+								{
+									"key": "Date",
+									"value": "Thu, 01 Aug 2024 06:40:48 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "close"
+								},
+								{
+									"key": "Set-Cookie",
+									"value": "x-sess-uuid=0.3c985468.1722494447.966eda9; secure; HttpOnly"
+								},
+								{
+									"key": "Server-Timing",
+									"value": "cdn-cache; desc=MISS"
+								},
+								{
+									"key": "Server-Timing",
+									"value": "edge; dur=49"
+								},
+								{
+									"key": "Server-Timing",
+									"value": "origin; dur=19"
+								},
+								{
+									"key": "Server-Timing",
+									"value": "ak_p; desc=\"1722494447975_1750374460_157740457_6800_8285_18_0_-\";dur=1"
+								},
+								{
+									"key": "Strict-Transport-Security",
+									"value": "max-age=600 ; includeSubDomains"
+								},
+								{
+									"key": "Vary",
+									"value": "Origin"
+								},
+								{
+									"key": "Transfer-Encoding",
+									"value": "chunked"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"error\": \"Failed to parse body as JSON. Content Type: application/json\",\n    \"statusCode\": 400\n}"
+						}
+					]
 				},
 				{
 					"name": "Reply",
@@ -3181,7 +3273,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"orders\": [\n    {\n      \"acctId\": \"U1234567\",\n      \"conid\": 265598,\n      \"cOID\": \"Parent\",\n      \"orderType\": \"MKT\",\n      \"listingExchange\": \"SMART\",\n      \"outsideRTH\": true,\n      \"side\": \"Buy\",\n      \"referrer\": \"QuickTrade\",\n      \"tif\": \"GTC\",\n      \"quantity\": 50\n    },\n    {\n      \"acctId\": \"U1234567\",\n      \"conid\": 265598,\n      \"orderType\": \"STP\",\n      \"listingExchange\": \"SMART\",\n      \"outsideRTH\": false,\n      \"price\": 157.30,\n      \"side\": \"Sell\",\n      \"tif\": \"GTC\",\n      \"quantity\": 50,\n      \"parentId\": \"Parent\"\n    },\n    {\n      \"acctId\": \"U1234567\",\n      \"conid\": 265598,\n      \"orderType\": \"LMT\",\n      \"listingExchange\": \"SMART\",\n      \"outsideRTH\": false,\n      \"price\": 157.00,\n      \"side\": \"Sell\",\n      \"tif\": \"GTC\",\n      \"quantity\": 50,\n      \"parentId\": \"Parent\"\n    }\n  ]\n}",
+							"raw": "{\n  \"orders\": [\n    {\n      \"acctId\": \"DU6036902\",\n      \"conid\": 265598,\n      \"cOID\": \"Parent\",\n      \"orderType\": \"MKT\",\n      \"listingExchange\": \"SMART\",\n      \"outsideRTH\": true,\n      \"side\": \"Buy\",\n      \"referrer\": \"QuickTrade\",\n      \"tif\": \"GTC\",\n      \"quantity\": 50\n    },\n    {\n      \"acctId\": \"DU6036902\",\n      \"conid\": 265598,\n      \"orderType\": \"STP\",\n      \"listingExchange\": \"SMART\",\n      \"outsideRTH\": false,\n      \"price\": 157.30,\n      \"side\": \"Sell\",\n      \"tif\": \"GTC\",\n      \"quantity\": 50,\n      \"parentId\": \"Parent\"\n    },\n    {\n      \"acctId\": \"DU6036902\",\n      \"conid\": 265598,\n      \"orderType\": \"LMT\",\n      \"listingExchange\": \"SMART\",\n      \"outsideRTH\": false,\n      \"price\": 157.00,\n      \"side\": \"Sell\",\n      \"tif\": \"GTC\",\n      \"quantity\": 50,\n      \"parentId\": \"Parent\"\n    }\n  ]\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -5017,7 +5109,7 @@
 			"script": {
 				"type": "text/javascript",
 				"exec": [
-					"var baseUrl = \"https://localhost:5001/v1/api\"",
+					"var baseUrl = \"https://localhost:5000/v1/api\"",
 					"pm.environment.set(\"base-url\", baseUrl)"
 				]
 			}
