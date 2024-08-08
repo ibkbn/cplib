@@ -3,7 +3,8 @@
 		"_postman_id": "da67580e-ea9d-4017-89eb-521122c04832",
 		"name": "IBKR",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "21628711"
+		"_exporter_id": "21628711",
+		"_collection_link": "https://www.postman.com/aviation-cosmologist-56575934/workspace/collections/collection/21628711-da67580e-ea9d-4017-89eb-521122c04832?action=share&source=collection_link&creator=21628711"
 	},
 	"item": [
 		{
@@ -2422,7 +2423,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"symbol\": \"\",\n  \"name\": true,\n  \"secType\": \"\" \n}"
+							"raw": "{\n  \"symbol\": \"AAPL\",\n  \"name\": true,\n  \"secType\": \"\" \n}"
 						},
 						"url": {
 							"raw": "{{base-url}}/iserver/secdef/search",
@@ -3056,7 +3057,7 @@
 					},
 					"response": [
 						{
-							"name": "Place Order",
+							"name": "available fields",
 							"originalRequest": {
 								"method": "POST",
 								"header": [],
@@ -3163,6 +3164,70 @@
 							],
 							"cookie": [],
 							"body": "{\n    \"error\": \"Failed to parse body as JSON. Content Type: application/json\",\n    \"statusCode\": 400\n}"
+						},
+						{
+							"name": "Overnight order",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"orders\": [\n    {\n      \"acctId\": \"{{accountID}}\",\n      \"conid\": 265598,\n      \"conidex\": \"265598@SMART\",\n      \"secType\": \"265598@STK\",\n      \"orderType\": \"MKT\",\n      \"listingExchange\": \"OVERNIGHT\",\n      \"side\": \"BUY\",\n      \"ticker\": \"AAPL\",\n      \"tif\": \"DAY\",\n      \"quantity\": 1\n    }\n  ]\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base-url}}/iserver/account/{{accountID}}/orders",
+									"host": [
+										"{{base-url}}"
+									],
+									"path": [
+										"iserver",
+										"account",
+										"{{accountID}}",
+										"orders"
+									]
+								}
+							},
+							"_postman_previewlanguage": null,
+							"header": null,
+							"cookie": [],
+							"body": null
+						},
+						{
+							"name": "Market order",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"orders\": [\n    {\n      \"acctId\": \"U1234567\",\n      \"conid\": 265598,\n      \"conidex\": \"265598@SMART\",\n      \"secType\": \"265598@STK\",\n      \"cOID\": \"AAPL-BUY-100\",\n      \"parentId\": \"\",\n      \"orderType\": \"TRAILLMT\",\n      \"listingExchange\": \"NASDAQ\",\n      \"isSingleGroup\":false,\n      \"outsideRTH\":true,\n      \"price\": 185.50,\n      \"auxPrice\": 183,\n      \"side\": \"BUY\",\n      \"ticker\": \"AAPL\",\n      \"tif\": \"GTC\",\n      \"trailingAmt\": 1.00,\n      \"trailingType\": \"amt\",\n      \"referrer\": \"QuickTrade\",\n      \"quantity\": 100,\n      \"cashQty\": {{ cashQty }},\n      \"fxQty\": {{ fxQty }},\n      \"useAdaptive\":false,\n      \"isCcyConv\":false,\n      \"allocationMethod\": {{ allocationMethod }},\n      \"strategy\": \"Vwap\",\n        \"strategyParameters\": {\n          \"MaxPctVol\":\"0.1\",\n          \"StartTime\":\"14:00:00 EST\",\n          \"EndTime\":\"15:00:00 EST\",\n          \"AllowPastEndTime\":true\n        }\n    }\n  ]\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base-url}}/iserver/account/{{accountID}}/orders",
+									"host": [
+										"{{base-url}}"
+									],
+									"path": [
+										"iserver",
+										"account",
+										"{{accountID}}",
+										"orders"
+									]
+								}
+							},
+							"_postman_previewlanguage": null,
+							"header": null,
+							"cookie": [],
+							"body": null
 						}
 					]
 				},
@@ -3460,6 +3525,70 @@
 							]
 						},
 						"description": "Resets all messages disabled by the Suppress Messages endpoint."
+					},
+					"response": []
+				},
+				{
+					"name": "{{base-url}}/iserver/account/:accountId/orders",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"orders\": [\n    {\n      \"acctId\": \"U1234567\",\n      \"conid\": 265598,\n      \"conidex\": \"265598@OVERNIGHT\",\n      \"secType\": \"265598@STK\",\n      \"cOID\": \"AAPL-BUY-100\",\n      \"parentId\": \"\",\n      \"orderType\": \"TRAILLMT\",\n      \"listingExchange\": \"NASDAQ\",\n      \"outsideRTH\":true,\n      \"price\": 185.50,\n      \"side\": \"BUY\",\n      \"ticker\": \"AAPL\",\n      \"tif\": \"GTC\",\n      \"referrer\": \"Overnight trade\",\n      \"quantity\": 100,\n    }\n  ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base-url}}/iserver/account/:accountId/orders",
+							"host": [
+								"{{base-url}}"
+							],
+							"path": [
+								"iserver",
+								"account",
+								":accountId",
+								"orders"
+							],
+							"variable": [
+								{
+									"key": "accountId",
+									"value": ""
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "{{base-url}}/iserver/account/{{accountID}}/orders",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"orders\": [\n    {\n      \"acctId\": \"{{accountID}}\",\n      \"conid\": 265598,\n      \"conidex\": \"265598@SMART\",\n      \"secType\": \"265598@STK\",\n      \"orderType\": \"MKT\",\n      \"listingExchange\": \"OVERNIGHT\",\n      \"side\": \"BUY\",\n      \"ticker\": \"AAPL\",\n      \"tif\": \"DAY\",\n      \"quantity\": 1\n    }\n  ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base-url}}/iserver/account/{{accountID}}/orders",
+							"host": [
+								"{{base-url}}"
+							],
+							"path": [
+								"iserver",
+								"account",
+								"{{accountID}}",
+								"orders"
+							]
+						}
 					},
 					"response": []
 				}
@@ -5109,8 +5238,8 @@
 			"script": {
 				"type": "text/javascript",
 				"exec": [
-					"var baseUrl = \"https://localhost:5000/v1/api\"",
-					"pm.environment.set(\"base-url\", baseUrl)"
+					"//var baseUrl = \"https://localhost:5000/v1/api\"",
+					"//pm.environment.set(\"base-url\", baseUrl)"
 				]
 			}
 		},
